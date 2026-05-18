@@ -1,6 +1,10 @@
 package frontend
 
-import tea "charm.land/bubbletea/v2"
+import (
+	"womier-sk75/keyboard"
+
+	tea "charm.land/bubbletea/v2"
+)
 
 // Custom message types for asynchronous keyboard operations
 type keyboardOpMsg struct {
@@ -9,9 +13,10 @@ type keyboardOpMsg struct {
 }
 
 // Placeholder tea.Cmd functions for hardware interaction
-func setBrightnessCmd(level int) tea.Cmd {
+func (m model) setBrightnessCmd(level int) tea.Cmd {
 	return func() tea.Msg {
 		// TODO: Call kb.SetRGB(PropBrightness, byte(level)) here
+		m.kb.SetRGB(keyboard.PropBrightness, []byte{byte(level)})
 		return keyboardOpMsg{success: true}
 	}
 }

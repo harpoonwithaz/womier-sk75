@@ -18,6 +18,8 @@ type adjustTarget int
 const (
 	adjustNone adjustTarget = iota
 	adjustBrightness
+	adjustEffect
+	adjustEffectSpeed
 	adjustColor
 )
 
@@ -53,16 +55,13 @@ func (m model) handleRGBMenuInput(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.rgbMenuIdx--
 		}
 	case "down", "j":
-		if m.rgbMenuIdx < 1 {
+		if m.rgbMenuIdx < 3 {
 			m.rgbMenuIdx++
 		}
 	case "enter":
 		m.state = stateAdjusting
-		if m.rgbMenuIdx == 0 {
-			m.adjustTarget = adjustBrightness
-		} else {
-			m.adjustTarget = adjustColor
-		}
+
+		m.adjustTarget = adjustTarget(m.rgbMenuIdx + 1)
 	}
 	return m, nil
 }
@@ -93,12 +92,12 @@ func (m model) handleAdjustmentInput(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		case "up":
 			if m.brightness < 9 { // 0-9 hardware limit from JSON
 				m.brightness++
-				cmd = setBrightnessCmd(m.brightness)
+				cmd = m.setBrightnessCmd(m.brightness)
 			}
 		case "down":
 			if m.brightness > 0 {
 				m.brightness--
-				cmd = setBrightnessCmd(m.brightness)
+				cmd = m.setBrightnessCmd(m.brightness)
 			}
 		}
 

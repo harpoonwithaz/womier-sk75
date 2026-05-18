@@ -27,7 +27,7 @@ func (m model) View() tea.View {
 
 	case stateRGBMenu:
 		s.WriteString("Main Menu > RGB Settings:\n")
-		options := []string{"Change Brightness", "Change Color"}
+		options := []string{"Change Brightness", "Change Effect", "Change Effect Speed", "Change Color"}
 		for i, opt := range options {
 			cursor := " "
 			if m.rgbMenuIdx == i {

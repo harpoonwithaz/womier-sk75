@@ -2,12 +2,14 @@ package frontend
 
 import (
 	"fmt"
+	"womier-sk75/keyboard"
 
 	tea "charm.land/bubbletea/v2"
 )
 
 // Model stores the state of the TUI application
 type model struct {
+	kb           *keyboard.Keyboard // keyboard object used to communicate with the backend
 	state        menuState
 	adjustTarget adjustTarget
 	mainMenuIdx  int
@@ -20,12 +22,13 @@ type model struct {
 	statusMessage string
 }
 
-func InitialModel() model {
+func InitialModel(kb *keyboard.Keyboard) model {
 	return model{
+		kb:           kb,
 		state:        stateMainMenu,
 		adjustTarget: adjustNone,
-		brightness:   5,   // start mid-range
-		colorHue:     120, // start color
+		brightness:   5,
+		colorHue:     120,
 	}
 }
 

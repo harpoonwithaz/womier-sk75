@@ -3,7 +3,6 @@ package keyboard
 
 import (
 	"errors"
-	"fmt"
 )
 
 type RGBProperty byte
@@ -16,7 +15,7 @@ const (
 )
 
 // Set methods
-func (k *Keyboard) SetKeyboard(property RGBProperty, values []byte) error {
+func (k *Keyboard) SetRGB(property RGBProperty, values []byte) error {
 	switch property {
 	case PropBrightness:
 		if values[0] > 9 {
@@ -39,12 +38,11 @@ func (k *Keyboard) SetKeyboard(property RGBProperty, values []byte) error {
 		return err
 	}
 
-	response, err := k.SendPacket(payload)
+	_, err = k.SendPacket(payload)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Raw response: %v\n", response)
 	return nil
 }
 
@@ -60,6 +58,5 @@ func (k *Keyboard) GetKeyboard(property RGBProperty) ([]byte, error) {
 		return nil, err
 	}
 
-	fmt.Printf("Raw response: %v\n", response) // for testing purposes
 	return response, nil
 }
