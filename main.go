@@ -15,11 +15,12 @@ func main() {
 
 	kb.DetectKeyboard()
 	err := kb.Connect()
-	defer kb.Disconnect()
 	if err != nil {
 		fmt.Printf("Error connecting to keyboard: %v\n", err)
 		os.Exit(1)
 	}
+
+	defer kb.Disconnect()
 
 	p := tea.NewProgram(frontend.InitialModel(kb))
 	if _, err := p.Run(); err != nil {
