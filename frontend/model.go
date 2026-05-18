@@ -18,7 +18,10 @@ type model struct {
 
 	// keyboard state variables
 	brightness    int // Range: 0-9
+	effect        int
+	effectSpeed   int
 	colorHue      int // Range: 0-255
+	colorSat      int
 	statusMessage string
 }
 
@@ -27,8 +30,11 @@ func InitialModel(kb *keyboard.Keyboard) model {
 		kb:           kb,
 		state:        stateMainMenu,
 		adjustTarget: adjustNone,
-		brightness:   5,
-		colorHue:     120,
+		brightness:   9, // max
+		effect:       1,
+		effectSpeed:  0,
+		colorHue:     0, // red
+		colorSat:     255,
 	}
 }
 

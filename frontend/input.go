@@ -101,18 +101,32 @@ func (m model) handleAdjustmentInput(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			}
 		}
 
+	case adjustEffect:
+		switch msg.String() {
+		case "up":
+			if m.effect > 0 {
+				m.effect--
+				cmd = m.setEffectCmd(m.effect)
+			}
+		case "down":
+			if m.effect < 18 {
+				m.effect++
+				cmd = m.setEffectCmd(m.effect)
+			}
+		}
+
 	case adjustColor:
 		// Left/Right arrows adjust color
 		switch msg.String() {
 		case "right":
 			if m.colorHue < 255 {
 				m.colorHue += 5
-				cmd = setColorCmd(m.colorHue)
+				cmd = m.setColorCmd(m.colorHue, m.colorSat)
 			}
 		case "left":
 			if m.colorHue > 0 {
 				m.colorHue -= 5
-				cmd = setColorCmd(m.colorHue)
+				cmd = m.setColorCmd(m.colorHue, m.colorSat)
 			}
 		}
 	}
