@@ -3,22 +3,16 @@ package main
 import (
 	"fmt"
 	"os"
-	"womier-sk75/keyboard"
+
+	tea "charm.land/bubbletea/v2"
+
+	"womier-sk75/frontend"
 )
 
 func main() {
-	kb := &keyboard.Keyboard{}
-
-	kb.DetectKeyboard()
-	err := kb.Connect()
-	if err != nil {
-		fmt.Printf("There was an error: %v\n", err)
-		os.Exit(0)
+	p := tea.NewProgram(frontend.InitialModel())
+	if _, err := p.Run(); err != nil {
+		fmt.Printf("Error running TUI: %v", err)
+		os.Exit(1)
 	}
-
-	kb.SetKeyboard(keyboard.PropertyRGBEffect, []byte{2})
-	defer kb.Disconnect()
-
-	// utils.GetDevices()
-
 }
