@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	tea "charm.land/bubbletea/v2"
-
 	"womier-sk75/frontend"
 	"womier-sk75/keyboard"
+
+	tea "charm.land/bubbletea/v2"
 )
 
 func main() {
@@ -19,8 +19,6 @@ func main() {
 		fmt.Printf("Error connecting to keyboard: %v\n", err)
 		os.Exit(1)
 	}
-
-	defer kb.Disconnect()
 
 	p := tea.NewProgram(frontend.InitialModel(kb))
 	if _, err := p.Run(); err != nil {

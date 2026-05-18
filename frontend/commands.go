@@ -1,3 +1,5 @@
+// Send commands to keyboard backend
+
 package frontend
 
 import (
@@ -21,9 +23,18 @@ func (m model) setBrightnessCmd(level int) tea.Cmd {
 	}
 }
 
-func setColorCmd(hue int) tea.Cmd {
+func (m model) setEffectCmd(value int) tea.Cmd {
+	return func() tea.Msg {
+		m.kb.SetRGB(keyboard.PropEffect, []byte{byte(value)})
+		return keyboardOpMsg{success: true}
+	}
+}
+
+func (m model) setColorCmd(hue, sat int) tea.Cmd {
 	return func() tea.Msg {
 		// TODO: Call kb.SetRGB(PropColor, byte(hue)) here
+		values := []byte{byte(hue), byte(sat)}
+		m.kb.SetRGB(keyboard.PropColor, values)
 		return keyboardOpMsg{success: true}
 	}
 }

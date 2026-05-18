@@ -44,14 +44,50 @@ func (m model) View() tea.View {
 
 	case stateAdjusting:
 		s.WriteString("Adjustment Mode:\n\n")
-		if m.adjustTarget == adjustBrightness {
+
+		switch m.adjustTarget {
+
+		case adjustBrightness:
 			s.WriteString(fmt.Sprintf("Adjust Brightness (Use Up/Down Arrow):\n"))
 			bar := strings.Repeat("█", m.brightness) + strings.Repeat("░", 9-m.brightness)
 			s.WriteString(fmt.Sprintf("[%s] %d/9\n", bar, m.brightness)) // Checked against JSON bounds
-		} else if m.adjustTarget == adjustColor {
+
+		case adjustEffect:
+			effectOptions := []string{
+				"Off",
+				"Wave",
+				"Color Cloud",
+				"Vortex",
+				"Mix Color",
+				"Breathe",
+				"Light",
+				"Slowly Off",
+				"Stone",
+				"Laser",
+				"Starry",
+				"Flowers Open",
+				"Traverse",
+				"Wave Bar",
+				"Meteor",
+				"Rain",
+				"Scan",
+				"Trigger Color",
+				"Center Spread",
+			}
+
+			for i, opt := range effectOptions {
+				cursor := " "
+				if m.effect == i {
+					cursor = ">"
+				}
+				s.WriteString(fmt.Sprintf("%s %s\n", cursor, opt))
+			}
+
+		case adjustColor:
 			s.WriteString(fmt.Sprintf("Adjust Color Hue (Use Left/Right Arrow):\n"))
 			s.WriteString(fmt.Sprintf("< Hue Value: %d >\n", m.colorHue))
 		}
+
 		s.WriteString("\n[enter/esc] Save and return to menu")
 	}
 
