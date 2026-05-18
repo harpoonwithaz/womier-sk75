@@ -15,6 +15,7 @@ func main() {
 
 	kb.DetectKeyboard()
 	err := kb.Connect()
+	defer kb.Disconnect()
 	if err != nil {
 		fmt.Printf("Error connecting to keyboard: %v\n", err)
 		os.Exit(1)
@@ -25,4 +26,5 @@ func main() {
 		fmt.Printf("Error running TUI: %v", err)
 		os.Exit(1)
 	}
+
 }

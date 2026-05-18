@@ -14,6 +14,14 @@ const (
 	PropColor      RGBProperty = 0x04 // From JSON: id_qmk_rgb_matrix_color
 )
 
+type RGBState struct {
+	Brightness  int
+	Effect      int
+	EffectSpeed int
+	ColorHue    int
+	ColorSat    int
+}
+
 // Set methods
 func (k *Keyboard) SetRGB(property RGBProperty, values []byte) error {
 	switch property {
@@ -26,7 +34,9 @@ func (k *Keyboard) SetRGB(property RGBProperty, values []byte) error {
 			return errors.New("effect preset must be between 0-18")
 		}
 	case PropSpeed:
-		break
+		if values[0] > 4 {
+			return errors.New("speed must be between 0-4")
+		}
 	case PropColor:
 		// if values[0] > 44 {
 		// 	return errors.New("color must be between 0-44")
@@ -61,4 +71,35 @@ func (k *Keyboard) GetKeyboard(property RGBProperty) ([]byte, error) {
 	}
 
 	return response, nil
+}
+
+func (k *Keyboard) ReadState() (*RGBState, error) {
+	var err error
+
+	getProp := func(prop RGBProperty) []byte {
+		if err != nil {
+			return nil
+		}
+		var val []byte
+		val, err = k.GetKeyboard(prop)
+		return val
+	}
+
+	b := getProp(PropBrightness)
+	e := getProp(PropEffect)
+	es := getProp(PropSpeed)
+	c := getProp(PropColor)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &RGBState{
+		// fourth byte onwards holds values
+		Brightness:  int(b[3]),
+		Effect:      int(e[3]),
+		EffectSpeed: int(es[3]),
+		ColorHue:    int(c[3]), // fourth byte is hue
+		ColorSat:    int(c[4]), // fifth byte is sat
+	}, nil
 }
