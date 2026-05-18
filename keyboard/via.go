@@ -9,11 +9,6 @@ const (
 	CmdGetKeyboardValue   = 0x08
 
 	ChannelRGBMatrix = 0x03
-
-	PropertyRGBBrightness  = 0x01
-	PropertyRGBEffect      = 0x02
-	PropertyRGBEffectSpeed = 0x03
-	PropertyRGBColor       = 0x04
 )
 
 /*

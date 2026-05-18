@@ -28,9 +28,9 @@ func (k *Keyboard) SetRGB(property RGBProperty, values []byte) error {
 	case PropSpeed:
 		break
 	case PropColor:
-		if values[0] > 44 {
-			return errors.New("color must be between 0-44")
-		}
+		// if values[0] > 44 {
+		// 	return errors.New("color must be between 0-44")
+		// }
 	}
 
 	payload, err := BuildPacket(CmdSetKeyboardValue, ChannelRGBMatrix, byte(property), values)
@@ -42,6 +42,8 @@ func (k *Keyboard) SetRGB(property RGBProperty, values []byte) error {
 	if err != nil {
 		return err
 	}
+
+	// fmt.Printf("Raw res: %v\n", res)
 
 	return nil
 }
