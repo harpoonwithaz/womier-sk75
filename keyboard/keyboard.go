@@ -5,51 +5,99 @@ package keyboard
 import (
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/karalabe/hid"
 )
 
 type Keyboard struct {
-	device *hid.Device
+	device     *hid.Device
+	interfaces []hid.DeviceInfo
+	mu         sync.Mutex
 }
 
-const vendorID uint16 = 0x320F
-const productID uint16 = 0x5055
+// Finds interface of known keyboards
+func (k *Keyboard) DetectKeyboard() {
+	// hard coded for now for my keyboards wireless and usb mode
+	// in the future, we can read via json config files and have
+	// a list of known vendor and product ids, and expand the functionality for
+	// mulitple known keyboards detected
+	const targetVID uint16 = 0x320F
+	const targetPIDwired uint16 = 0x5055
+	const targetPIDwireless uint16 = 0x5088
+
+	var interfaces []hid.DeviceInfo
+
+	hids := hid.Enumerate(0, 0)
+
+	for _, h := range hids {
+		// yes ik this is lazy, i will make it better later
+		if h.VendorID == targetVID && (h.ProductID == targetPIDwired || h.ProductID == targetPIDwireless) {
+			fmt.Printf("Found a known device with vid: %x, pid: %x and interface #%v\n", h.VendorID, h.ProductID, h.Interface)
+			interfaces = append(interfaces, h) // add the interface which matches our target
+		}
+	}
+
+	k.mu.Lock()
+	k.interfaces = interfaces
+	k.mu.Unlock()
+}
 
 func (k *Keyboard) Connect() error {
-	// Get a list of hids under the vendor and product ID
-	hids := hid.Enumerate(vendorID, productID)
-	var targetDevice *hid.DeviceInfo
+	// copy slice under lock, then operate on the copy (avoid pointers into k.interfaces)
+	k.mu.Lock()
+	if len(k.interfaces) == 0 {
+		k.mu.Unlock()
+		return errors.New("cannot connect, keyboard has not been detected")
+	}
+	interfacesCopy := make([]hid.DeviceInfo, len(k.interfaces))
+	copy(interfacesCopy, k.interfaces)
+	k.mu.Unlock()
 
-	// Find interface 1 and connect to it
-	// ** DO NOT USE INTERFACE 0, IT WILL CRASH THE KEYBOARD **
-	for _, info := range hids {
+	// Find interface 1 on the copy
+	var target hid.DeviceInfo
+	found := false
+	for _, info := range interfacesCopy {
 		if info.Interface == 1 {
-			targetDevice = &info
+			target = info // copy the struct
+			found = true
 			fmt.Println("Found lighting interface")
 			break
 		}
 	}
 
-	if targetDevice == nil {
+	if !found {
 		return errors.New("could not find the Raw HID lighting interface")
 	}
 
-	var err error
-	k.device, err = targetDevice.Open()
+	// Open without holding the mutex (avoid blocking other ops)
+	d, err := target.Open()
 	if err != nil {
 		return err
 	}
 
+	k.mu.Lock()
+	k.device = d
+	k.mu.Unlock()
+
+	fmt.Println("Successfully connected to keyboard")
 	return nil
 }
 
 func (k *Keyboard) Disconnect() error {
-	err := k.device.Close()
-	if err != nil {
-		return err
+	k.mu.Lock()
+	d := k.device
+	k.device = nil
+	k.mu.Unlock()
+
+	if d != nil {
+		err := d.Close()
+		if err != nil {
+			return err
+		}
 	}
 
+	fmt.Println("Successfully disconnected keyboard")
 	return nil
 }
 
@@ -61,6 +109,13 @@ func (k *Keyboard) Disconnect() error {
 func (k *Keyboard) SendPacket(payload []byte) ([]byte, error) {
 	if len(payload) != 32 {
 		return nil, errors.New("payload must be 32 bytes")
+	}
+
+	k.mu.Lock()
+	defer k.mu.Unlock()
+
+	if k.device == nil {
+		return nil, errors.New("device not connected")
 	}
 
 	// First byte is the report id
@@ -80,4 +135,20 @@ func (k *Keyboard) SendPacket(payload []byte) ([]byte, error) {
 	}
 
 	return res, nil
+}
+
+func (k *Keyboard) GetProtocol() ([]byte, error) {
+	// get protocol version only requires the cmd,
+	// so the channel, property and values are 0
+	payload, err := BuildPacket(CmdGetProtocolVersion, 0x00, 0x00, []byte{0x00})
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := k.SendPacket(payload)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, err
 }

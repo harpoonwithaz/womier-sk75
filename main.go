@@ -1,19 +1,24 @@
 package main
 
-import "womier-sk75/keyboard"
+import (
+	"fmt"
+	"os"
+	"womier-sk75/keyboard"
+)
 
 func main() {
 	kb := &keyboard.Keyboard{}
 
-	kb.Connect()
+	kb.DetectKeyboard()
+	err := kb.Connect()
+	if err != nil {
+		fmt.Printf("There was an error: %v\n", err)
+		os.Exit(0)
+	}
 
-	// var setPreferences keyboard.SetPreferences
-	// setPreferences.property = PropEffect
-	// setPreferences.colorSat = 0
-	// kb.SetKeyboard()
-
-	// kb.GetEffect()
-	// kb.GetColor()
-
+	kb.SetKeyboard(keyboard.PropertyRGBEffect, []byte{2})
 	defer kb.Disconnect()
+
+	// utils.GetDevices()
+
 }

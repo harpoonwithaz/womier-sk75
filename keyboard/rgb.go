@@ -15,43 +15,30 @@ const (
 	PropColor      RGBProperty = 0x04 // From JSON: id_qmk_rgb_matrix_color
 )
 
-type SetPreferences struct {
-	property RGBProperty
-	value    byte
-	colorSat byte
-}
-
 // Set methods
-// Gener
-func (k *Keyboard) SetKeyboard(state SetPreferences) error {
-	switch state.property {
+func (k *Keyboard) SetKeyboard(property RGBProperty, values []byte) error {
+	switch property {
 	case PropBrightness:
-		if state.value > 9 {
+		if values[0] > 9 {
 			return errors.New("brightness level must be >= 0 and <= 9")
 		}
 	case PropEffect:
-		if state.value > 18 {
+		if values[0] > 18 {
 			return errors.New("effect preset must be between 0-18")
 		}
 	case PropSpeed:
 		break
 	case PropColor:
-		if state.value > 44 {
+		if values[0] > 44 {
 			return errors.New("color must be between 0-44")
 		}
-
-		payload, _ := BuildSetPacket(ChannelRGBMatrix, byte(state.property), state.value, state.colorSat) // include a 255 because idk womier did it
-		response, err := k.SendPacket(payload)
-		// TODO: this part is just for testing to see the response bytes
-		if err != nil {
-			return err
-		}
-
-		fmt.Printf("Raw response: %v\n", response)
-		return nil
 	}
 
-	payload, _ := BuildSetPacket(ChannelRGBMatrix, byte(state.property), state.value)
+	payload, err := BuildPacket(CmdSetKeyboardValue, ChannelRGBMatrix, byte(property), values)
+	if err != nil {
+		return err
+	}
+
 	response, err := k.SendPacket(payload)
 	if err != nil {
 		return err
@@ -62,26 +49,17 @@ func (k *Keyboard) SetKeyboard(state SetPreferences) error {
 }
 
 // Get methods
-func (k *Keyboard) GetEffect() ([]byte, error) {
-	payload := BuiltGetPacket(ChannelRGBMatrix, PropertyRGBEffect)
+func (k *Keyboard) GetKeyboard(property RGBProperty) ([]byte, error) {
+	payload, err := BuildPacket(CmdGetKeyboardValue, ChannelRGBMatrix, byte(property), []byte{0x00}) // get packet doesnt need values
+	if err != nil {
+		return nil, err
+	}
 
 	response, err := k.SendPacket(payload)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Printf("Raw response: %v\n", response)
-	return response, nil
-}
-
-func (k *Keyboard) GetColor() ([]byte, error) {
-	payload := BuiltGetPacket(ChannelRGBMatrix, PropertyRGBColor)
-
-	response, err := k.SendPacket(payload)
-	if err != nil {
-		return nil, err
-	}
-
-	fmt.Printf("Raw response: %v\n", response)
+	fmt.Printf("Raw response: %v\n", response) // for testing purposes
 	return response, nil
 }
